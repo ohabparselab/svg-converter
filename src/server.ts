@@ -10,7 +10,8 @@ import axios from "axios";
 import path from "path";
 import fs from "fs";
 
-import { allowedMimes } from "./helper.ts"
+import { allowedMimes } from "./helper"
+import { startFileCleanup } from "./file-cleanup";
 
 dotenv.config();
 
@@ -180,7 +181,6 @@ app.get("/files/:filename", verifyToken, (req, res) => {
 app.use((_, res) => res.status(404).json({ error: "URL Not found" }));
 
 // file clean up interval start
-import { startFileCleanup } from "./file-cleanup.ts";
 startFileCleanup(uploadDir, outputDir);
 
 app.listen(port, () => {
