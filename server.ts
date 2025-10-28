@@ -10,37 +10,7 @@ import axios from "axios";
 import path from "path";
 import fs from "fs";
 
-const allowedMimes = [
-    "image/png",
-    "image/jpeg",
-    "image/jpg",
-    "image/bmp",
-    "image/gif",
-    "image/tiff",
-    "image/webp",
-    "image/svg+xml",
-    "application/pdf",
-    "application/postscript",
-    "application/eps",
-    "application/x-eps",
-    "image/x-eps",
-    "image/x-dxf",
-    "application/x-dxf",
-    "application/dxf",
-    "image/x-wmf",
-    "image/x-emf",
-    "application/vnd.corel-draw",
-    "application/illustrator",
-    "application/x-illustrator",
-    "application/x-xfig",
-    "application/x-dia-diagram",
-    "application/x-skencil",
-    "image/x-cgm",
-    "application/x-msmetafile",
-    "text/plain",
-    "application/hpgl",
-    "application/vnd.hp-hpgl"
-];
+import { allowedMimes } from "./helper.ts"
 
 dotenv.config();
 
@@ -54,6 +24,9 @@ const outputDir = path.resolve("converted");
 
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
 if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
+
+app.use(express.json({ limit: "1gb" }));
+app.use(express.urlencoded({ limit: "1gb", extended: true }));
 
 app.use(helmet());
 app.use(express.json());
@@ -96,7 +69,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
     storage,
-    limits: { fileSize: 10 * 1024 * 1024 },
+    limits: { fileSize: 1024 * 1024 * 1024 }, // 100 mb
     fileFilter: (_, file, cb) => {
         if (allowedMimes.includes(file.mimetype)) cb(null, true);
         else cb(new Error("Invalid file type"));
@@ -205,6 +178,10 @@ app.get("/files/:filename", verifyToken, (req, res) => {
 
 // Fallback
 app.use((_, res) => res.status(404).json({ error: "URL Not found" }));
+
+// file clean up interval start
+import { startFileCleanup } from "./file-cleanup.ts";
+startFileCleanup(uploadDir, outputDir);
 
 app.listen(port, () => {
     console.log(`SVG Converter API server running on ${baseUrl}`);
