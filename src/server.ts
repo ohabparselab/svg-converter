@@ -86,7 +86,7 @@ app.post("/api/convert", verifyToken, upload.single("file"), (req, res) => {
     const outputFileName = `${path.parse(originalFileName).name}.svg`;
     const outputFile = path.join(outputDir, outputFileName);
 
-    const command = `inkscape "${inputFile}" --export-type=svg --export-filename="${outputFile}"`;
+    const command = `xvfb-run inkscape "${inputFile}" --export-type=svg --export-filename="${outputFile}"`;
 
     exec(command, (error, _, stderr) => {
         if (error) {
@@ -132,7 +132,7 @@ app.post("/api/convert-url", verifyToken, async (req, res) => {
         // Convert with Inkscape
         const outputFileName = `${path.parse(uniqueFilename).name}.svg`;
         const outputFile = path.join(outputDir, outputFileName);
-        const command = `inkscape "${inputFile}" --export-type=svg --export-filename="${outputFile}"`;
+        const command = `xvfb-run inkscape "${inputFile}" --export-type=svg --export-filename="${outputFile}"`;
 
         exec(command, (error, _, stderr) => {
             if (error) {
