@@ -1,0 +1,307 @@
+{
+    "info": {
+        "_postman_id": "svg-converter-api-live",
+        "name": "SVG Converter API — Live",
+        "description": "API for converting images and vector files to SVG format using Inkscape. All endpoints (except 404 fallback) require a JWT passed via the `api-key` header.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://162.243.185.168:4000",
+            "type": "string",
+            "description": "Base URL of the live SVG Converter API server"
+        },
+        {
+            "key": "api_key",
+            "value": "<your-jwt-token>",
+            "type": "string",
+            "description": "JWT token signed with JWT_SECRET. Generated at server startup with role: admin."
+        }
+    ],
+    "item": [
+        {
+            "name": "Convert File (Upload)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "api-key",
+                        "value": "{{api_key}}",
+                        "type": "text",
+                        "description": "JWT authentication token"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/api/convert",
+                    "host": ["{{base_url}}"],
+                    "path": ["api", "convert"]
+                },
+                "body": {
+                    "mode": "formdata",
+                    "formdata": [
+                        {
+                            "key": "file",
+                            "type": "file",
+                            "src": "",
+                            "description": "The image or vector file to convert to SVG. Supported formats: PNG, JPEG, BMP, GIF, TIFF, WebP, SVG, PDF, EPS, DXF, WMF, EMF, CDR, AI, XFig, DIA, SK, CGM, HPGL."
+                        }
+                    ]
+                },
+                "description": "Upload a file directly to convert it to SVG format using Inkscape. Maximum file size is 1 GB.\n\n**Authentication:** Requires `api-key` header with a valid JWT.\n\n**Supported MIME types:**\n- `image/png`, `image/jpeg`, `image/jpg`, `image/bmp`, `image/gif`, `image/tiff`, `image/webp`, `image/svg+xml`\n- `application/pdf`, `application/postscript`, `application/eps`, `application/x-eps`, `image/x-eps`\n- `image/x-dxf`, `application/x-dxf`, `application/dxf`\n- `image/x-wmf`, `image/x-emf`\n- `application/vnd.corel-draw`, `application/illustrator`, `application/x-illustrator`\n- `application/x-xfig`, `application/x-dia-diagram`, `application/x-skencil`\n- `image/x-cgm`, `application/x-msmetafile`, `text/plain`\n- `application/hpgl`, `application/vnd.hp-hpgl`"
+            },
+            "response": [
+                {
+                    "name": "200 OK — Conversion Successful",
+                    "status": "OK",
+                    "code": 200,
+                    "header": [
+                        { "key": "Content-Type", "value": "application/json" }
+                    ],
+                    "body": "{\n    \"success\": true,\n    \"message\": \"File converted successfully\",\n    \"files\": {\n        \"original\": \"http://162.243.185.168:4000/files/b3bd1712-219a-47be-a643-c0169fd825c3-login.png\",\n        \"converted\": \"http://162.243.185.168:4000/files/b3bd1712-219a-47be-a643-c0169fd825c3-login.svg\"\n    }\n}",
+                    "_postman_previewlanguage": "json"
+                },
+                {
+                    "name": "400 Bad Request — No File",
+                    "status": "Bad Request",
+                    "code": 400,
+                    "header": [
+                        { "key": "Content-Type", "value": "application/json" }
+                    ],
+                    "body": "{\n    \"error\": \"No file uploaded\"\n}",
+                    "_postman_previewlanguage": "json"
+                },
+                {
+                    "name": "400 Bad Request — Invalid File Type",
+                    "status": "Bad Request",
+                    "code": 400,
+                    "header": [
+                        { "key": "Content-Type", "value": "application/json" }
+                    ],
+                    "body": "{\n    \"error\": \"Invalid file type\"\n}",
+                    "_postman_previewlanguage": "json"
+                },
+                {
+                    "name": "401 Unauthorized — Missing Token",
+                    "status": "Unauthorized",
+                    "code": 401,
+                    "header": [
+                        { "key": "Content-Type", "value": "application/json" }
+                    ],
+                    "body": "{\n    \"error\": \"Token missing or invalid token\"\n}",
+                    "_postman_previewlanguage": "json"
+                },
+                {
+                    "name": "401 Unauthorized — Invalid Token",
+                    "status": "Unauthorized",
+                    "code": 401,
+                    "header": [
+                        { "key": "Content-Type", "value": "application/json" }
+                    ],
+                    "body": "{\n    \"error\": \"Unauthorized\"\n}",
+                    "_postman_previewlanguage": "json"
+                },
+                {
+                    "name": "500 Internal Server Error — Inkscape Failure",
+                    "status": "Internal Server Error",
+                    "code": 500,
+                    "header": [
+                        { "key": "Content-Type", "value": "application/json" }
+                    ],
+                    "body": "{\n    \"error\": \"Conversion failed\",\n    \"details\": \"<inkscape stderr output>\"\n}",
+                    "_postman_previewlanguage": "json"
+                }
+            ]
+        },
+        {
+            "name": "Convert File (from URL)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "api-key",
+                        "value": "{{api_key}}",
+                        "type": "text",
+                        "description": "JWT authentication token"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json",
+                        "type": "text"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/api/convert-url",
+                    "host": ["{{base_url}}"],
+                    "path": ["api", "convert-url"]
+                },
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"fileUrl\": \"https://example.com/image.png\"\n}",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                },
+                "description": "Provide a public URL to a file and the server will download it, then convert it to SVG using Inkscape.\n\n**Authentication:** Requires `api-key` header with a valid JWT.\n\nThe server validates the `Content-Type` of the downloaded file against the same allowed MIME types as the upload endpoint. Query strings in the URL are stripped when determining the original filename."
+            },
+            "response": [
+                {
+                    "name": "200 OK — Conversion Successful",
+                    "status": "OK",
+                    "code": 200,
+                    "header": [
+                        { "key": "Content-Type", "value": "application/json" }
+                    ],
+                    "body": "{\n    \"success\": true,\n    \"message\": \"File converted successfully\",\n    \"files\": {\n        \"original\": \"http://162.243.185.168:4000/files/e1b19c6e-5148-4700-a538-01ff5c3a3f0a-image.png\",\n        \"converted\": \"http://162.243.185.168:4000/files/e1b19c6e-5148-4700-a538-01ff5c3a3f0a-image.svg\"\n    }\n}",
+                    "_postman_previewlanguage": "json"
+                },
+                {
+                    "name": "400 Bad Request — Missing fileUrl",
+                    "status": "Bad Request",
+                    "code": 400,
+                    "header": [
+                        { "key": "Content-Type", "value": "application/json" }
+                    ],
+                    "body": "{\n    \"error\": \"fileUrl is required\"\n}",
+                    "_postman_previewlanguage": "json"
+                },
+                {
+                    "name": "400 Bad Request — Disallowed File Type",
+                    "status": "Bad Request",
+                    "code": 400,
+                    "header": [
+                        { "key": "Content-Type", "value": "application/json" }
+                    ],
+                    "body": "{\n    \"error\": \"File type not allowed\"\n}",
+                    "_postman_previewlanguage": "json"
+                },
+                {
+                    "name": "401 Unauthorized — Missing Token",
+                    "status": "Unauthorized",
+                    "code": 401,
+                    "header": [
+                        { "key": "Content-Type", "value": "application/json" }
+                    ],
+                    "body": "{\n    \"error\": \"Token missing or invalid token\"\n}",
+                    "_postman_previewlanguage": "json"
+                },
+                {
+                    "name": "401 Unauthorized — Invalid Token",
+                    "status": "Unauthorized",
+                    "code": 401,
+                    "header": [
+                        { "key": "Content-Type", "value": "application/json" }
+                    ],
+                    "body": "{\n    \"error\": \"Unauthorized\"\n}",
+                    "_postman_previewlanguage": "json"
+                },
+                {
+                    "name": "500 Internal Server Error",
+                    "status": "Internal Server Error",
+                    "code": 500,
+                    "header": [
+                        { "key": "Content-Type", "value": "application/json" }
+                    ],
+                    "body": "{\n    \"error\": \"Conversion failed\"\n}",
+                    "_postman_previewlanguage": "json"
+                }
+            ]
+        },
+        {
+            "name": "Download / View File",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "api-key",
+                        "value": "{{api_key}}",
+                        "type": "text",
+                        "description": "JWT authentication token"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/files/:filename",
+                    "host": ["{{base_url}}"],
+                    "path": ["files", ":filename"],
+                    "variable": [
+                        {
+                            "key": "filename",
+                            "value": "b3bd1712-219a-47be-a643-c0169fd825c3-login.svg",
+                            "description": "The filename returned in the `files.original` or `files.converted` field of a conversion response."
+                        }
+                    ]
+                },
+                "description": "Download or view a file by its filename. The server checks both the `uploads/` (original files) and `converted/` (SVG output) directories.\n\n**Authentication:** Requires `api-key` header with a valid JWT.\n\nThe `Content-Type` response header is set automatically based on the file extension using `mime-types`."
+            },
+            "response": [
+                {
+                    "name": "200 OK — File Contents",
+                    "status": "OK",
+                    "code": 200,
+                    "header": [
+                        { "key": "Content-Type", "value": "image/svg+xml" }
+                    ],
+                    "body": "<svg>...</svg>",
+                    "_postman_previewlanguage": "xml"
+                },
+                {
+                    "name": "401 Unauthorized — Missing Token",
+                    "status": "Unauthorized",
+                    "code": 401,
+                    "header": [
+                        { "key": "Content-Type", "value": "application/json" }
+                    ],
+                    "body": "{\n    \"error\": \"Token missing or invalid token\"\n}",
+                    "_postman_previewlanguage": "json"
+                },
+                {
+                    "name": "401 Unauthorized — Invalid Token",
+                    "status": "Unauthorized",
+                    "code": 401,
+                    "header": [
+                        { "key": "Content-Type", "value": "application/json" }
+                    ],
+                    "body": "{\n    \"error\": \"Unauthorized\"\n}",
+                    "_postman_previewlanguage": "json"
+                },
+                {
+                    "name": "404 Not Found — File Missing",
+                    "status": "Not Found",
+                    "code": 404,
+                    "header": [
+                        { "key": "Content-Type", "value": "application/json" }
+                    ],
+                    "body": "{\n    \"error\": \"File not found\"\n}",
+                    "_postman_previewlanguage": "json"
+                }
+            ]
+        },
+        {
+            "name": "404 Fallback",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{base_url}}/any-unknown-path",
+                    "host": ["{{base_url}}"],
+                    "path": ["any-unknown-path"]
+                },
+                "description": "Any request to an unrecognised path returns a 404 JSON response. No authentication required for this fallback."
+            },
+            "response": [
+                {
+                    "name": "404 Not Found",
+                    "status": "Not Found",
+                    "code": 404,
+                    "header": [
+                        { "key": "Content-Type", "value": "application/json" }
+                    ],
+                    "body": "{\n    \"error\": \"URL Not found\"\n}",
+                    "_postman_previewlanguage": "json"
+                }
+            ]
+        }
+    ]
+}
