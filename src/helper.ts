@@ -1,3 +1,14 @@
+const epsMimes = new Set([
+    "application/postscript",
+    "application/eps",
+    "application/x-eps",
+    "image/x-eps",
+]);
+
+export function isEpsMime(mime: string): boolean {
+    return epsMimes.has(mime);
+}
+
 export const allowedMimes = [
     "image/png",
     "image/jpeg",

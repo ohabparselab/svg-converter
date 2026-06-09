@@ -10,7 +10,7 @@ import axios from "axios";
 import path from "path";
 import fs from "fs";
 
-import { allowedMimes } from "./helper"
+import { allowedMimes, isEpsMime } from "./helper"
 import { startFileCleanup } from "./file-cleanup";
 
 dotenv.config();
@@ -63,7 +63,8 @@ function verifyToken(
 const storage = multer.diskStorage({
     destination: (_, __, cb) => cb(null, "uploads/"),
     filename: (_, file, cb) => {
-        const uniqueName = `${uuidv4()}-${file.originalname}`;
+        const sanitized = file.originalname.trim().replace(/\s+/g, "-");
+        const uniqueName = `${uuidv4()}-${sanitized}`;
         cb(null, uniqueName);
     }
 });
@@ -77,6 +78,31 @@ const upload = multer({
     }
 });
 
+// Converts inputFile to SVG. For EPS/PS files, first converts to PDF via Ghostscript
+// because Inkscape 1.4+ dropped native EPS import support.
+function convertToSvg(
+    inputFile: string,
+    outputFile: string,
+    mimeType: string,
+    callback: (error: Error | null, stderr?: string) => void
+) {
+    const inkscape = (src: string) => {
+        const cmd = `inkscape "${src}" --export-type=svg --export-filename="${outputFile}"`;
+        exec(cmd, (err, _, stderr) => callback(err, stderr));
+    };
+
+    if (isEpsMime(mimeType)) {
+        const pdfTemp = `${inputFile}.pdf`;
+        const gsCmd = `gs -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile="${pdfTemp}" "${inputFile}"`;
+        exec(gsCmd, (err, _, stderr) => {
+            if (err) return callback(err, stderr);
+            inkscape(pdfTemp);
+        });
+    } else {
+        inkscape(inputFile);
+    }
+}
+
 // Convert API
 app.post("/api/convert", verifyToken, upload.single("file"), (req, res) => {
     if (!req.file) return res.status(400).json({ error: "No file uploaded" });
@@ -86,11 +112,9 @@ app.post("/api/convert", verifyToken, upload.single("file"), (req, res) => {
     const outputFileName = `${path.parse(originalFileName).name}.svg`;
     const outputFile = path.join(outputDir, outputFileName);
 
-    const command = `inkscape "${inputFile}" --export-type=svg --export-filename="${outputFile}"`;
-
-    exec(command, (error, _, stderr) => {
+    convertToSvg(inputFile, outputFile, req.file.mimetype, (error, stderr) => {
         if (error) {
-            console.error("Inkscape error:", stderr);
+            console.error("Conversion error:", stderr);
             fs.unlinkSync(inputFile);
             return res.status(500).json({ error: "Conversion failed", details: stderr });
         }
@@ -116,7 +140,8 @@ app.post("/api/convert-url", verifyToken, async (req, res) => {
 
     try {
         // Get original filename from URL
-        const originalFilename = path.basename(fileUrl.split("?")[0]);
+        const rawFilename = path.basename(fileUrl.split("?")[0]);
+        const originalFilename = rawFilename.trim().replace(/\s+/g, "-");
         const uniqueFilename = `${uuidv4()}-${originalFilename}`;
         const inputFile = path.join(uploadDir, uniqueFilename);
 
@@ -129,15 +154,13 @@ app.post("/api/convert-url", verifyToken, async (req, res) => {
 
         fs.writeFileSync(inputFile, Buffer.from(response.data));
 
-        // Convert with Inkscape
+        // Convert with Inkscape (EPS goes via Ghostscript first)
         const outputFileName = `${path.parse(uniqueFilename).name}.svg`;
         const outputFile = path.join(outputDir, outputFileName);
 
-        const command = `inkscape "${inputFile}" --export-type=svg --export-filename="${outputFile}"`;
-
-        exec(command, (error, _, stderr) => {
+        convertToSvg(inputFile, outputFile, contentType, (error, stderr) => {
             if (error) {
-                console.error("Inkscape error:", stderr);
+                console.error("Conversion error:", stderr);
                 fs.unlinkSync(inputFile);
                 return res.status(500).json({ error: "Conversion failed", details: stderr });
             }
