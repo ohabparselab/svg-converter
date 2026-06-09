@@ -1,5 +1,4 @@
 import { exec } from "child_process";
-import { v4 as uuidv4 } from "uuid";
 import jwt from "jsonwebtoken";
 import express from "express";
 import mime from "mime-types";
@@ -10,7 +9,7 @@ import axios from "axios";
 import path from "path";
 import fs from "fs";
 
-import { allowedMimes, isEpsMime } from "./helper"
+import { allowedMimes, isEpsMime, uniqueId } from "./helper"
 import { startFileCleanup } from "./file-cleanup";
 
 dotenv.config();
@@ -64,7 +63,7 @@ const storage = multer.diskStorage({
     destination: (_, __, cb) => cb(null, "uploads/"),
     filename: (_, file, cb) => {
         const sanitized = file.originalname.trim().replace(/\s+/g, "-");
-        const uniqueName = `${uuidv4()}-${sanitized}`;
+        const uniqueName = `${uniqueId()}-${sanitized}`;
         cb(null, uniqueName);
     }
 });
@@ -142,7 +141,7 @@ app.post("/api/convert-url", verifyToken, async (req, res) => {
         // Get original filename from URL
         const rawFilename = path.basename(fileUrl.split("?")[0]);
         const originalFilename = rawFilename.trim().replace(/\s+/g, "-");
-        const uniqueFilename = `${uuidv4()}-${originalFilename}`;
+        const uniqueFilename = `${uniqueId()}-${originalFilename}`;
         const inputFile = path.join(uploadDir, uniqueFilename);
 
         // Download file
