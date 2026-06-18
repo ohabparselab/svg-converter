@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 
 export const CLEANUP_INTERVAL = 30 * 60 * 1000; // 5 minutes
-export const FILE_TTL = 30 * 60 * 1000;        // 30 minutes
+export const FILE_TTL = 5 * 60 * 1000;        // 5 minutes
 
 export const startFileCleanup = (uploadDir: string, outputDir: string) => {
 
