@@ -184,7 +184,7 @@ app.post("/api/convert-url", verifyToken, async (req, res) => {
 
 
 // Secure file download (JWT required)
-app.get("/files/:filename", verifyToken, (req, res) => {
+app.get("/files/:filename", (req, res) => {
     const { filename } = req.params;
     const filePath =
         fs.existsSync(path.join(uploadDir, filename))

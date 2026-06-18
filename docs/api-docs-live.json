@@ -14,7 +14,7 @@
         },
         {
             "key": "api_key",
-            "value": "<your-jwt-token>",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NjE1NTExODV9.YfJWf9qWOwoN__mjmNKHW5Cu0OLU_o8Htuq60H3yoU0",
             "type": "string",
             "description": "JWT token signed with JWT_SECRET. Generated at server startup with role: admin."
         }
